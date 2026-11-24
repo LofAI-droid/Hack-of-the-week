@@ -1,0 +1,348 @@
+<!doctype html>
+<html lang="nl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <title>Hack of the Week — proef huisstijl</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
+    <style>
+      @font-face {
+        font-family: "Montserrat";
+        src: url("assets/fonts/Montserrat-latin-var.woff2") format("woff2");
+        font-weight: 100 900;
+        font-style: normal;
+      }
+
+      /* ---- Tokens: GenAI Kennishub ---- */
+      :root {
+        --navy: #003a7d;
+        --navy-deep: #013173;
+        --blue: #0152af;
+        --magenta: #e4004f;
+        --yellow: #fdb028;
+        --sky: #86caf6;
+        --surface: #ffffff;
+        --surface-tint: #eaf4fd;
+        --blush: #f7dbdd;
+        --ink-muted: #4a6283;
+        --font-sans: Montserrat, "Helvetica Neue", Arial, sans-serif;
+
+        /* Video-schaal (1920x1080) */
+        --v-margin: 128px; /* 2 x space-16 */
+        --v-display: 124px;
+        --v-h1: 88px;
+        --v-h2: 64px;
+        --v-h3: 44px;
+        --v-body: 38px;
+        --v-small: 28px;
+        --v-label: 28px;
+      }
+
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body {
+        width: 1920px; height: 1080px; overflow: hidden;
+        background: var(--navy);
+        font-family: var(--font-sans);
+      }
+      #root { position: relative; width: 1920px; height: 1080px; overflow: hidden; }
+
+      .scene { position: absolute; inset: 0; overflow: hidden; }
+      .bg-navy { background: var(--navy); color: var(--surface); }
+      .bg-tint { background: var(--surface-tint); color: var(--navy); }
+      .bg-surface { background: var(--surface); color: var(--navy); }
+
+      /* Typografie */
+      .display { font-size: var(--v-display); line-height: 1.02; font-weight: 700; letter-spacing: -0.015em; }
+      .h1 { font-size: var(--v-h1); line-height: 1.12; font-weight: 700; letter-spacing: -0.01em; }
+      .h2 { font-size: var(--v-h2); line-height: 1.18; font-weight: 700; }
+      .h3 { font-size: var(--v-h3); line-height: 1.2; font-weight: 600; }
+      .body { font-size: var(--v-body); line-height: 1.42; font-weight: 400; }
+      .small { font-size: var(--v-small); line-height: 1.36; font-weight: 400; }
+      .label { font-size: var(--v-label); line-height: 1.3; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; }
+      .muted { color: var(--ink-muted); }
+
+      /* Magenta titelstreep */
+      .streep { width: 160px; height: 12px; background: var(--magenta); transform-origin: left center; margin-top: 32px; }
+
+      /* Tekstblok links */
+      .left { position: absolute; left: var(--v-margin); top: 50%; transform: translateY(-50%); width: 1000px; }
+      .left > * + * { margin-top: 0; }
+      .stack-gap > * + * { margin-top: 28px; }
+
+      /* Cirkelmotief */
+      .circle { position: absolute; border-radius: 9999px; }
+      .c-blue { background: radial-gradient(circle at 35% 30%, #1a6fd0 0%, var(--blue) 60%); }
+      .c-magenta { background: radial-gradient(circle at 35% 30%, #ff2a6e 0%, var(--magenta) 65%); }
+      .c-yellow { background: radial-gradient(circle at 35% 30%, #ffc85a 0%, var(--yellow) 65%); }
+      .c-sky { background: radial-gradient(circle at 35% 30%, #a8daf9 0%, var(--sky) 65%); }
+
+      .network { position: absolute; inset: 0; pointer-events: none; }
+      .network line { stroke: var(--surface); stroke-width: 2; stroke-dasharray: 6 8; opacity: 0.55; }
+      .network circle { fill: var(--surface); }
+      .network circle.sky { fill: var(--sky); }
+
+      /* Logo */
+      .logo { position: absolute; left: var(--v-margin); top: 96px; width: 300px; height: auto; }
+
+      /* Aflevering-pil */
+      .pil {
+        display: inline-block; background: var(--yellow); color: var(--navy);
+        font-weight: 700; font-size: 34px; line-height: 1; padding: 14px 24px; border-radius: 9999px;
+      }
+
+      /* Naambalk (lower third) */
+      .naambalk {
+        position: absolute; left: var(--v-margin); bottom: 96px;
+        display: flex; align-items: stretch; background: var(--navy); color: var(--surface);
+        border-radius: 8px; overflow: hidden;
+      }
+      .naambalk .accent { width: 12px; background: var(--magenta); }
+      .naambalk .tekst { padding: 20px 32px; }
+      .naambalk .naam { font-size: 34px; font-weight: 700; line-height: 1.2; }
+      .naambalk .rol { font-size: 28px; font-weight: 400; line-height: 1.3; opacity: 0.9; }
+
+      /* Vergelijking */
+      .tabel { position: absolute; left: var(--v-margin); right: var(--v-margin); top: 330px; }
+      .rij {
+        display: grid; grid-template-columns: 380px 300px 1fr; align-items: center;
+        padding: 22px 0; border-bottom: 2px solid #d3e3f3;
+      }
+      .rij .tool { font-size: 40px; font-weight: 700; }
+      .oordeel { display: flex; align-items: center; gap: 18px; font-size: 32px; font-weight: 600; }
+      .oordeel svg { width: 56px; height: 56px; flex: none; }
+      .rij .noot { font-size: 30px; line-height: 1.35; color: var(--ink-muted); }
+      .bron { position: absolute; left: var(--v-margin); bottom: 56px; }
+      .voorbeeld {
+        position: absolute; right: var(--v-margin); top: 120px;
+        border: 3px solid var(--magenta); color: var(--magenta); padding: 10px 18px; border-radius: 8px;
+      }
+
+      /* Outro */
+      .contact > * + * { margin-top: 18px; }
+      .contact .regel { display: flex; align-items: center; gap: 20px; }
+      .contact .dot { width: 18px; height: 18px; border-radius: 9999px; background: var(--sky); flex: none; }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="34" data-width="1920" data-height="1080">
+
+      <!-- ============ 1. INTRO (0 – 3.5s) ============ -->
+      <section id="s-intro" class="scene clip bg-navy" data-start="0" data-duration="4.1" data-track-index="0">
+        <div data-layout-allow-overflow class="circle c-blue" id="i-c1" style="width:900px;height:900px;left:1180px;top:-420px;"></div>
+        <div data-layout-allow-overflow class="circle c-magenta" id="i-c2" style="width:620px;height:620px;left:1380px;top:120px;"></div>
+        <div data-layout-allow-overflow class="circle c-yellow" id="i-c3" style="width:700px;height:700px;left:1600px;top:420px;"></div>
+        <div data-layout-allow-overflow class="circle c-sky" id="i-c4" style="width:560px;height:560px;left:1060px;top:640px;"></div>
+        <svg class="network" id="i-net" viewBox="0 0 1920 1080">
+          <line x1="1040" y1="330" x2="1240" y2="250" /><line x1="1240" y1="250" x2="1420" y2="400" />
+          <line x1="1420" y1="400" x2="1300" y2="600" /><line x1="1300" y1="600" x2="1040" y2="330" />
+          <line x1="1420" y1="400" x2="1660" y2="300" /><line x1="1300" y1="600" x2="1560" y2="760" />
+          <line x1="1560" y1="760" x2="1760" y2="620" /><line x1="1660" y1="300" x2="1760" y2="620" />
+          <circle cx="1040" cy="330" r="9" /><circle cx="1240" cy="250" r="7" class="sky" />
+          <circle cx="1420" cy="400" r="11" /><circle cx="1300" cy="600" r="8" class="sky" />
+          <circle cx="1660" cy="300" r="8" /><circle cx="1560" cy="760" r="10" />
+          <circle cx="1760" cy="620" r="7" class="sky" /><circle cx="980" cy="760" r="6" />
+        </svg>
+        <img class="logo" id="i-logo" src="assets/logo/PNG-Logo_UCLL_CMYK_wit.png" alt="UCLL Hogeschool" />
+        <div class="left" style="top:56%;">
+          <div class="label" id="i-label">GenAI Kennishub</div>
+          <div class="display" id="i-title" style="margin-top:24px;">Hack of<br />the Week</div>
+          <div class="streep" id="i-streep"></div>
+          <div style="margin-top:40px;"><span class="pil" id="i-pil">#01</span></div>
+        </div>
+      </section>
+
+      <!-- ============ 2. TITELKAART (3.5 – 8.5s) ============ -->
+      <section id="s-titel" class="scene clip bg-navy" data-start="3.5" data-duration="5.6" data-track-index="1" style="background:var(--navy-deep);">
+        <div data-layout-allow-overflow class="circle c-sky" id="t-c1" style="width:520px;height:520px;left:1560px;top:-160px;"></div>
+        <div data-layout-allow-overflow class="circle c-magenta" id="t-c2" style="width:360px;height:360px;left:1700px;top:300px;"></div>
+        <div data-layout-allow-overflow class="circle c-blue" id="t-c3" style="width:640px;height:640px;left:1500px;top:640px;"></div>
+        <div class="left" style="width:1300px;">
+          <div class="label" id="t-label">Vraag van de week</div>
+          <div class="h1" id="t-vraag" style="margin-top:28px;">Kun je met AI-tools<br />video's analyseren?</div>
+          <div class="streep" id="t-streep"></div>
+        </div>
+      </section>
+
+      <!-- ============ 3. INHOUDSKAART (8.5 – 14.5s) ============ -->
+      <section id="s-inhoud" class="scene clip bg-tint" data-start="8.5" data-duration="6.6" data-track-index="2">
+        <div data-layout-allow-overflow class="circle c-sky" id="n-c1" style="width:460px;height:460px;left:1600px;top:-140px;"></div>
+        <div data-layout-allow-overflow class="circle c-yellow" id="n-c2" style="width:300px;height:300px;left:1760px;top:220px;"></div>
+        <div class="left" style="top:44%;width:1250px;">
+          <div class="label muted" id="n-label">Goed om te weten</div>
+          <div class="h2" id="n-kop" style="margin-top:24px;">Een video is beeld én geluid.</div>
+          <div class="streep" id="n-streep"></div>
+          <p class="body" id="n-tekst" style="margin-top:40px;">Sommige tools bekijken de beelden zelf. Andere lezen alleen wat er gezegd wordt. Dat bepaalt wat je kunt vragen.</p>
+        </div>
+        <div class="naambalk" id="n-naambalk">
+          <div class="accent"></div>
+          <div class="tekst">
+            <div class="naam">Peter Vanbrabant</div>
+            <div class="rol">GenAI Kennishub · UCLL Hogeschool</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ 4. VERGELIJKING (14.5 – 23s) ============ -->
+      <section id="s-verg" class="scene clip bg-surface" data-start="14.5" data-duration="9.1" data-track-index="3">
+        <div class="left" style="top:120px;transform:none;width:1300px;">
+          <div class="label muted" id="v-label">Vergelijking</div>
+          <div class="h2" id="v-kop" style="margin-top:20px;">Een videobestand uploaden</div>
+          <div class="streep" id="v-streep" style="margin-top:24px;"></div>
+        </div>
+        <div class="voorbeeld label" id="v-voorbeeld">Voorbeelddata</div>
+
+        <div class="tabel" data-hold>
+          <div class="rij" id="v-r1">
+            <div class="tool">Tool A</div>
+            <div class="oordeel">
+              <svg viewBox="0 0 56 56" aria-hidden="true"><circle cx="28" cy="28" r="26" fill="#0152af"/><path d="M16 29 l8 8 l16 -18" fill="none" stroke="#fff" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <span>Kan het</span>
+            </div>
+            <div class="noot">Bekijkt beeld en geluid samen.</div>
+          </div>
+          <div class="rij" id="v-r2">
+            <div class="tool">Tool B</div>
+            <div class="oordeel">
+              <svg viewBox="0 0 56 56" aria-hidden="true"><path d="M28 2 A26 26 0 0 0 28 54 Z" fill="#fdb028"/><circle cx="28" cy="28" r="24.5" fill="none" stroke="#003a7d" stroke-width="3.5"/><line x1="28" y1="4" x2="28" y2="52" stroke="#003a7d" stroke-width="3.5"/></svg>
+              <span>Deels</span>
+            </div>
+            <div class="noot">Alleen het transcript, niet de beelden.</div>
+          </div>
+          <div class="rij" id="v-r3">
+            <div class="tool">Tool C</div>
+            <div class="oordeel">
+              <svg viewBox="0 0 56 56" aria-hidden="true"><circle cx="28" cy="28" r="24.5" fill="#fff" stroke="#e4004f" stroke-width="3.5"/><path d="M19 19 L37 37 M37 19 L19 37" stroke="#e4004f" stroke-width="5" stroke-linecap="round"/></svg>
+              <span>Niet</span>
+            </div>
+            <div class="noot">Geen video-upload mogelijk.</div>
+          </div>
+        </div>
+
+        <div class="bron small muted" id="v-bron">Bron: eigen test, november 2026</div>
+      </section>
+
+      <!-- ============ 5. CONCLUSIE (23 – 28s) ============ -->
+      <section id="s-concl" class="scene clip bg-navy" data-start="23" data-duration="5.6" data-track-index="4">
+        <div data-layout-allow-overflow class="circle c-blue" id="k-c1" style="width:760px;height:760px;left:1380px;top:-300px;"></div>
+        <div data-layout-allow-overflow class="circle c-yellow" id="k-c2" style="width:420px;height:420px;left:1640px;top:420px;"></div>
+        <div data-layout-allow-overflow class="circle c-sky" id="k-c3" style="width:520px;height:520px;left:1300px;top:780px;"></div>
+        <div class="left" style="width:1150px;">
+          <div class="label" id="k-label">Conclusie</div>
+          <div class="h1" id="k-kop" style="margin-top:28px;">Kies je tool op wat je wilt weten.</div>
+          <div class="streep" id="k-streep"></div>
+          <p class="body" id="k-tekst" style="margin-top:40px;">Gaat het om wat er gezegd wordt, of om wat er te zien is?</p>
+        </div>
+      </section>
+
+      <!-- ============ 6. OUTRO (28 – 34s) ============ -->
+      <section id="s-outro" class="scene clip bg-navy" data-start="28" data-duration="6" data-track-index="5">
+        <div data-layout-allow-overflow class="circle c-blue" id="o-c1" style="width:900px;height:900px;left:1180px;top:-420px;"></div>
+        <div data-layout-allow-overflow class="circle c-magenta" id="o-c2" style="width:620px;height:620px;left:1380px;top:120px;"></div>
+        <div data-layout-allow-overflow class="circle c-yellow" id="o-c3" style="width:700px;height:700px;left:1600px;top:420px;"></div>
+        <div data-layout-allow-overflow class="circle c-sky" id="o-c4" style="width:560px;height:560px;left:1060px;top:640px;"></div>
+        <img class="logo" id="o-logo" src="assets/logo/PNG-Logo_UCLL_CMYK_wit.png" alt="UCLL Hogeschool" />
+        <div class="left" style="top:58%;width:1000px;">
+          <div class="h1" id="o-kop">GenAI Kennishub</div>
+          <div class="streep" id="o-streep"></div>
+          <div class="contact" style="margin-top:48px;">
+            <div class="regel body" id="o-r1"><span class="dot"></span>Elke vrijdag: kom langs in D210</div>
+            <div class="regel body" id="o-r2"><span class="dot"></span>Of contacteer me via mail of Teams</div>
+            <div class="regel body" id="o-r3"><span class="dot"></span>voornaam.naam@ucll.be</div>
+          </div>
+          <div class="small" id="o-reeks" style="margin-top:56px;opacity:0.85;">Hack of the Week · #01</div>
+        </div>
+      </section>
+
+    </div>
+
+    <script>
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+
+      // Bewegingstaal: kalm en zelfzeker
+      const IN = { ease: "power3.out", duration: 0.9 };
+      const RISE = 28;      // px dat tekst omhoog schuift bij binnenkomen
+      const XFADE = 0.6;    // overgang tussen scènes
+
+      function rise(sel, at, extra) {
+        tl.fromTo(sel, { opacity: 0, y: RISE }, Object.assign({ opacity: 1, y: 0 }, IN, extra || {}), at);
+      }
+      function streep(sel, at) {
+        tl.fromTo(sel, { scaleX: 0 }, { scaleX: 1, duration: 0.6, ease: "power2.out" }, at);
+      }
+      function circlesIn(sels, at, len) {
+        sels.forEach((s, i) => {
+          tl.fromTo(s, { opacity: 0, scale: 0.7, x: 120 }, { opacity: 1, scale: 1, x: 0, duration: 1.3, ease: "power2.out" }, at + i * 0.12);
+          // langzaam drijven zolang de scène loopt
+          tl.to(s, { x: (i % 2 ? -24 : 18), y: (i % 2 ? 16 : -20), duration: len, ease: "sine.inOut" }, at + 1.3 + i * 0.12);
+        });
+      }
+      function sceneIn(sel, at) {
+        tl.fromTo(sel, { opacity: 0 }, { opacity: 1, duration: XFADE, ease: "power1.inOut" }, at);
+      }
+
+      // 1. Intro
+      circlesIn(["#i-c1", "#i-c2", "#i-c3", "#i-c4"], 0, 2.4);
+      tl.fromTo("#i-net circle", { scale: 0, transformOrigin: "50% 50%" }, { scale: 1, duration: 0.5, ease: "back.out(2)", stagger: 0.06 }, 0.7);
+      tl.fromTo("#i-net line", { opacity: 0 }, { opacity: 0.55, duration: 0.8, stagger: 0.05 }, 0.9);
+      tl.fromTo("#i-logo", { opacity: 0 }, { opacity: 1, duration: 0.8, ease: "power1.out" }, 0.2);
+      rise("#i-label", 0.5);
+      rise("#i-title", 0.65);
+      streep("#i-streep", 1.3);
+      tl.fromTo("#i-pil", { opacity: 0, scale: 0.6 }, { opacity: 1, scale: 1, duration: 0.6, ease: "back.out(2)" }, 1.6);
+
+      // 2. Titelkaart
+      sceneIn("#s-titel", 3.5);
+      circlesIn(["#t-c1", "#t-c2", "#t-c3"], 3.6, 3.6);
+      rise("#t-label", 3.9);
+      rise("#t-vraag", 4.05);
+      streep("#t-streep", 4.7);
+
+      // 3. Inhoudskaart
+      sceneIn("#s-inhoud", 8.5);
+      circlesIn(["#n-c1", "#n-c2"], 8.6, 4.6);
+      rise("#n-label", 8.9);
+      rise("#n-kop", 9.05);
+      streep("#n-streep", 9.6);
+      rise("#n-tekst", 9.9);
+      tl.fromTo("#n-naambalk", { opacity: 0, x: -60 }, { opacity: 1, x: 0, duration: 0.8, ease: "power3.out" }, 10.6);
+      tl.to("#n-naambalk", { opacity: 0, x: -60, duration: 0.5, ease: "power2.in" }, 13.6);
+
+      // 4. Vergelijking
+      sceneIn("#s-verg", 14.5);
+      rise("#v-label", 14.8);
+      rise("#v-kop", 14.95);
+      streep("#v-streep", 15.5);
+      tl.fromTo("#v-voorbeeld", { opacity: 0 }, { opacity: 1, duration: 0.6 }, 15.4);
+      ["#v-r1", "#v-r2", "#v-r3"].forEach((r, i) => {
+        rise(r, 16.0 + i * 0.9);
+        tl.fromTo(r + " svg", { scale: 0, transformOrigin: "50% 50%" }, { scale: 1, duration: 0.5, ease: "back.out(2.2)" }, 16.3 + i * 0.9);
+      });
+      rise("#v-bron", 18.8, { duration: 0.7 });
+
+      // 5. Conclusie
+      sceneIn("#s-concl", 23);
+      circlesIn(["#k-c1", "#k-c2", "#k-c3"], 23.1, 3.6);
+      rise("#k-label", 23.4);
+      rise("#k-kop", 23.55);
+      streep("#k-streep", 24.2);
+      rise("#k-tekst", 24.5);
+
+      // 6. Outro
+      sceneIn("#s-outro", 28);
+      circlesIn(["#o-c1", "#o-c2", "#o-c3", "#o-c4"], 28.1, 4.4);
+      tl.fromTo("#o-logo", { opacity: 0 }, { opacity: 1, duration: 0.8 }, 28.4);
+      rise("#o-kop", 28.6);
+      streep("#o-streep", 29.2);
+      rise("#o-r1", 29.5);
+      rise("#o-r2", 29.75);
+      rise("#o-r3", 30.0);
+      rise("#o-reeks", 30.4);
+      // rustig uitfaden naar navy
+      tl.to("#s-outro .left, #o-logo", { opacity: 0, duration: 0.8, ease: "power1.in" }, 33.1);
+
+      window.__timelines["main"] = tl;
+      tl.seek(0);
+    </script>
+  </body>
+</html>
