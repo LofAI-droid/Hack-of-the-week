@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=1920, height=1080" />
-    <title>Virtuele studio — GenAI Kennishub</title>
+    <title>Virtuele studio — GenAI Kennishub (Blender)</title>
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
     <style>
       @font-face {
@@ -12,156 +12,70 @@
         font-weight: 100 900;
       }
       :root {
-        --navy: #003a7d; --navy-deep: #013173; --blue: #0152af; --magenta: #e4004f;
-        --yellow: #fdb028; --sky: #86caf6; --surface: #ffffff; --surface-tint: #eaf4fd;
-        --ink-muted: #4a6283;
+        --navy: #003a7d; --blue: #0152af; --magenta: #e4004f; --yellow: #fdb028;
+        --sky: #86caf6; --surface: #ffffff; --surface-tint: #eaf4fd; --ink-muted: #4a6283;
         --font-sans: Montserrat, "Helvetica Neue", Arial, sans-serif;
-        --horizon: 690px;
       }
       * { margin: 0; padding: 0; box-sizing: border-box; }
-      html, body { width: 1920px; height: 1080px; overflow: hidden; background: #e9f0f7; font-family: var(--font-sans); }
+      html, body { width: 1920px; height: 1080px; overflow: hidden; background: #dfe5ec; font-family: var(--font-sans); }
       #root { position: relative; width: 1920px; height: 1080px; overflow: hidden; }
 
-      /* ============ RUIMTE ============ */
-      #ruimte { position: absolute; inset: 0; }
+      .laag { position: absolute; inset: 0; }
+      .laag img { width: 1920px; height: 1080px; display: block; }
 
-      /* Achterwand */
-      .wand {
-        position: absolute; left: 0; right: 0; top: 0; height: var(--horizon);
-        background: linear-gradient(180deg, #f6f9fc 0%, #eef3f9 55%, #e3ebf4 100%);
+      /* Panelen: posities komen uit Blender (studio_scene.py drukt ze af) */
+      .paneel-wrap { position: absolute; top: 259px; width: 252px; height: 359px; }
+      .paneel {
+        position: absolute; inset: 0; border-radius: 6px; overflow: hidden;
+        background: linear-gradient(100deg, #f3f6f9 0%, #fbfcfd 55%, #ffffff 100%);
+        box-shadow: 0 1px 0 rgba(255,255,255,0.9) inset, -3px 0 0 rgba(0,40,90,0.06) inset, 0 10px 30px -12px rgba(0,40,90,0.25);
+        color: var(--navy); padding: 26px 22px; display: flex; flex-direction: column;
       }
-      /* Verzonken nis in de achterwand */
-      .nis {
-        position: absolute; left: 860px; top: 150px; width: 1060px; height: 540px;
-        background: linear-gradient(180deg, #e8eff7 0%, #dde7f2 100%);
-        box-shadow: inset 18px 0 30px -18px rgba(0, 58, 125, 0.22), inset 0 18px 30px -18px rgba(0, 58, 125, 0.18);
+      .paneel .balk { position: absolute; left: 0; top: 0; right: 0; height: 7px; background: var(--navy); }
+      .paneel .icoon { width: 76px; height: 76px; margin-top: 12px; }
+      .paneel .label { margin-top: auto; font-size: 18px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-muted); line-height: 1.3; }
+      .paneel .titel { margin-top: 8px; font-size: 32px; line-height: 1.12; font-weight: 700; }
+      .paneel .streep { margin-top: 14px; width: 52px; height: 5px; background: var(--magenta); transform-origin: left center; }
+      .gloed {
+        position: absolute; inset: -2px; border-radius: 8px; pointer-events: none; opacity: 0;
+        box-shadow: 0 0 0 3px var(--magenta), 0 20px 60px -8px rgba(228, 0, 79, 0.35);
       }
-      /* Dunne magenta lichtlijn onderaan de nis */
-      .lichtlijn {
-        position: absolute; left: 860px; top: 684px; width: 1060px; height: 6px;
-        background: var(--magenta);
-        box-shadow: 0 0 24px 2px rgba(228, 0, 79, 0.25);
+      /* Spiegeling in de gepolijste vloer */
+      .spiegel {
+        position: absolute; top: 942px; width: 252px; height: 359px; transform: scaleY(-1);
+        opacity: 0.16; filter: blur(2px);
+        -webkit-mask-image: linear-gradient(0deg, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 45%);
+                mask-image: linear-gradient(0deg, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 45%);
       }
-      /* Verticale lamellen links */
-      .lamellen { position: absolute; left: 0; top: 0; width: 520px; height: var(--horizon); display: flex; gap: 34px; padding-left: 40px; }
-      .lamel {
-        width: 26px; height: 100%;
-        background: linear-gradient(90deg, #ffffff 0%, #f1f5fa 45%, #dbe5f0 100%);
-        box-shadow: 8px 0 18px -8px rgba(0, 58, 125, 0.16);
-      }
-      /* Zuil tussen lamellen en nis */
-      .zuil {
-        position: absolute; left: 640px; top: 0; width: 120px; height: var(--horizon);
-        background: linear-gradient(90deg, #f9fbfd 0%, #eaf0f7 60%, #d6e1ed 100%);
-        box-shadow: 16px 0 40px -14px rgba(0, 58, 125, 0.22);
-      }
-      /* Cirkelmotief als wandkunst in de nis, heel subtiel */
-      .wandcirkel { position: absolute; border-radius: 9999px; }
+      .spiegel .paneel { box-shadow: none; }
 
-      /* Vloer */
-      .vloer {
-        position: absolute; left: 0; right: 0; top: var(--horizon); bottom: 0;
-        background: linear-gradient(180deg, #d9e3ee 0%, #e7eef6 30%, #eef3f9 100%);
-        overflow: hidden;
-      }
-      .vloer-grid {
-        position: absolute; left: -1200px; right: -1200px; top: 0; height: 1400px;
-        transform-origin: 50% 0; transform: perspective(700px) rotateX(78deg);
-        background-image:
-          linear-gradient(90deg, rgba(0, 58, 125, 0.07) 2px, transparent 2px),
-          linear-gradient(0deg, rgba(0, 58, 125, 0.05) 2px, transparent 2px);
-        background-size: 180px 180px;
-      }
-      .plint { position: absolute; left: 0; right: 0; top: calc(var(--horizon) - 4px); height: 4px; background: rgba(0, 58, 125, 0.12); }
-      /* Lichtval van rechts */
-      .licht {
-        position: absolute; inset: 0;
-        background: radial-gradient(ellipse 900px 700px at 1500px 420px, rgba(255, 255, 255, 0.55), rgba(255, 255, 255, 0) 70%);
-      }
-
-      /* ============ PRESENTATOR (tijdelijk silhouet) ============ */
+      /* Presentator: tijdelijk silhouet */
       #presentator { position: absolute; left: 230px; bottom: 0; width: 560px; height: 830px; }
       #presentator svg { width: 100%; height: 100%; }
-      .plaatshouder {
-        position: absolute; left: 230px; bottom: 40px; width: 560px; text-align: center;
-        font-size: 28px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--surface);
-      }
-
-      /* ============ PANELEN ============ */
-      #panelen { position: absolute; inset: 0; perspective: 1800px; perspective-origin: 1300px 450px; }
-      .paneel-wrap { position: absolute; top: 210px; width: 320px; height: 440px; transform-style: preserve-3d; }
-      .paneel {
-        position: absolute; inset: 0; border-radius: 8px; overflow: hidden;
-        background: linear-gradient(160deg, rgba(255, 255, 255, 0.97) 0%, rgba(244, 248, 252, 0.94) 100%);
-        box-shadow: 0 30px 60px -20px rgba(0, 58, 125, 0.30), 0 2px 0 rgba(255, 255, 255, 0.9) inset;
-        color: var(--navy);
-        padding: 34px 30px;
-        display: flex; flex-direction: column;
-      }
-      .paneel .balk { position: absolute; left: 0; top: 0; right: 0; height: 8px; background: var(--navy); }
-      .paneel .icoon { width: 96px; height: 96px; margin-top: 18px; }
-      .paneel .label { margin-top: auto; font-size: 24px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-muted); }
-      .paneel .titel { margin-top: 10px; font-size: 40px; line-height: 1.12; font-weight: 700; }
-      .paneel .streep { margin-top: 18px; width: 64px; height: 6px; background: var(--magenta); transform-origin: left center; }
-      .gloed {
-        position: absolute; inset: -2px; border-radius: 10px; pointer-events: none;
-        box-shadow: 0 0 0 3px var(--magenta), 0 24px 70px -10px rgba(228, 0, 79, 0.35);
-        opacity: 0;
-      }
-      .schaduw {
-        position: absolute; top: 860px; width: 320px; height: 44px; border-radius: 9999px;
-        background: radial-gradient(ellipse at center, rgba(0, 40, 90, 0.22) 0%, rgba(0, 40, 90, 0) 70%);
-      }
+      .plaatshouder { position: absolute; left: 230px; bottom: 40px; width: 560px; text-align: center; font-size: 28px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--surface); }
     </style>
   </head>
   <body>
     <div id="root" data-composition-id="main" data-start="0" data-duration="16" data-width="1920" data-height="1080">
 
-      <!-- Ruimte: blijft altijd stilstaan -->
-      <div id="ruimte" class="clip" data-start="0" data-duration="16" data-track-index="0" data-hold>
-        <div class="wand"></div>
-        <div class="lamellen">
-          <div class="lamel"></div><div class="lamel"></div><div class="lamel"></div>
-          <div class="lamel"></div><div class="lamel"></div><div class="lamel"></div><div class="lamel"></div>
-        </div>
-        <div class="zuil"></div>
-        <div class="nis"></div>
-        <div class="wandcirkel" data-layout-allow-overflow style="left:1520px;top:110px;width:520px;height:520px;background:rgba(134,202,246,0.22);"></div>
-        <div class="wandcirkel" data-layout-allow-overflow style="left:1700px;top:330px;width:340px;height:340px;background:rgba(253,176,40,0.16);"></div>
-        <div class="lichtlijn" id="lichtlijn"></div>
-        <div class="plint"></div>
-        <div class="vloer"><div class="vloer-grid" data-layout-allow-overflow></div></div>
-        <div class="licht"></div>
+      <!-- Ruimte uit Blender: zonder en met de schaduwen van de panelen -->
+      <div class="laag clip" id="bg-leeg" data-start="0" data-duration="16" data-track-index="0" data-hold>
+        <img src="assets/studio/studio-achtergrond.png" alt="" />
+      </div>
+      <div class="laag clip" id="bg-schaduw" data-start="0" data-duration="16" data-track-index="1">
+        <img src="assets/studio/studio-achtergrond-panelen.png" alt="" />
       </div>
 
-      <!-- Schaduwen van de panelen op de vloer -->
-      <div id="schaduwen" class="clip" data-start="0" data-duration="16" data-track-index="1">
-        <div class="schaduw" id="sch1" style="left:880px;"></div>
-        <div class="schaduw" id="sch2" style="left:1220px;"></div>
-        <div class="schaduw" id="sch3" style="left:1560px;"></div>
+      <!-- Spiegelingen -->
+      <div class="laag clip" id="spiegels" data-start="0" data-duration="16" data-track-index="2">
+        <div class="spiegel" id="sp1" style="left:978px;"><div class="paneel"><div class="balk"></div></div></div>
+        <div class="spiegel" id="sp2" style="left:1265px;"><div class="paneel"><div class="balk" id="sp2-balk"></div></div></div>
+        <div class="spiegel" id="sp3" style="left:1553px;"><div class="paneel"><div class="balk"></div></div></div>
       </div>
-
-      <!-- Presentator: tijdelijk silhouet, later jouw opname zonder achtergrond -->
-      <div id="presentator" class="clip" data-start="0" data-duration="16" data-track-index="2" data-hold>
-        <svg viewBox="0 0 560 830" aria-hidden="true">
-          <defs>
-            <linearGradient id="silh" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0" stop-color="#1b4f8f" /><stop offset="1" stop-color="#003a7d" />
-            </linearGradient>
-          </defs>
-          <!-- hoofd -->
-          <ellipse cx="280" cy="170" rx="92" ry="112" fill="url(#silh)" />
-          <!-- hals -->
-          <rect x="238" y="262" width="84" height="80" rx="30" fill="url(#silh)" />
-          <!-- romp tot het middel -->
-          <path d="M60 830 C60 560 90 400 180 352 C220 332 250 326 280 326 C310 326 340 332 380 352 C470 400 500 560 500 830 Z" fill="url(#silh)" />
-        </svg>
-      </div>
-      <div class="plaatshouder clip" id="plaatshouder" data-start="0" data-duration="16" data-track-index="3">Jouw opname</div>
 
       <!-- Panelen -->
-      <div id="panelen" class="clip" data-start="0" data-duration="16" data-track-index="4">
-        <div class="paneel-wrap" id="p1" style="left:880px;">
+      <div class="laag clip" id="panelen" data-start="0" data-duration="16" data-track-index="3">
+        <div class="paneel-wrap" id="p1" style="left:978px;">
           <div class="paneel">
             <div class="balk"></div>
             <svg class="icoon" viewBox="0 0 96 96" aria-hidden="true">
@@ -174,9 +88,9 @@
           </div>
           <div class="gloed"></div>
         </div>
-        <div class="paneel-wrap" id="p2" style="left:1220px;">
+        <div class="paneel-wrap" id="p2" style="left:1265px;">
           <div class="paneel">
-            <div class="balk"></div>
+            <div class="balk" id="p2-balk"></div>
             <svg class="icoon" viewBox="0 0 96 96" aria-hidden="true">
               <circle cx="48" cy="48" r="44" fill="#fdb028" />
               <path d="M53 20 L33 52 L47 52 L42 76 L64 42 L50 42 Z" fill="#003a7d" />
@@ -187,7 +101,7 @@
           </div>
           <div class="gloed" id="gloed2"></div>
         </div>
-        <div class="paneel-wrap" id="p3" style="left:1560px;">
+        <div class="paneel-wrap" id="p3" style="left:1553px;">
           <div class="paneel">
             <div class="balk"></div>
             <svg class="icoon" viewBox="0 0 96 96" aria-hidden="true">
@@ -203,58 +117,65 @@
         </div>
       </div>
 
+      <!-- Presentator: tijdelijk silhouet, later jouw opname zonder achtergrond -->
+      <div id="presentator" class="clip" data-start="0" data-duration="16" data-track-index="4" data-hold>
+        <svg viewBox="0 0 560 830" aria-hidden="true">
+          <defs>
+            <linearGradient id="silh" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="#4b6584" /><stop offset="1" stop-color="#2c4563" />
+            </linearGradient>
+          </defs>
+          <ellipse cx="280" cy="170" rx="92" ry="112" fill="url(#silh)" />
+          <rect x="238" y="262" width="84" height="80" rx="30" fill="url(#silh)" />
+          <path d="M60 830 C60 560 90 400 180 352 C220 332 250 326 280 326 C310 326 340 332 380 352 C470 400 500 560 500 830 Z" fill="url(#silh)" />
+        </svg>
+      </div>
+      <div class="plaatshouder clip" data-start="0" data-duration="16" data-track-index="5">Jouw opname</div>
     </div>
 
     <script>
       window.__timelines = window.__timelines || {};
       const tl = gsap.timeline({ paused: true });
 
-      // Basisstand: panelen licht gedraaid naar de presentator toe, in een boog
-      const BASIS = {
-        "#p1": { rotationY: -14, z: -60 },
-        "#p2": { rotationY: -8,  z: 0 },
-        "#p3": { rotationY: -2,  z: -60 },
-      };
-
-      // 0–1.2 s: studio komt op
-            tl.fromTo("#lichtlijn", { scaleX: 0, transformOrigin: "left center" }, { scaleX: 1, duration: 1.4, ease: "power2.inOut" }, 0.4);
+      // Schaduwen van de panelen verschijnen samen met de panelen
+      tl.fromTo("#bg-schaduw", { opacity: 0 }, { opacity: 1, duration: 2.4, ease: "power1.inOut" }, 1.6);
 
       // 1.6–3.8 s: panelen verschijnen één voor één
-      ["#p1", "#p2", "#p3"].forEach((p, i) => {
+      [1, 2, 3].forEach((n, i) => {
         const t = 1.6 + i * 0.7;
-        tl.fromTo(p, Object.assign({ opacity: 0, y: 60 }, BASIS[p]), Object.assign({ opacity: 1, y: 0, duration: 1.1, ease: "power3.out" }, BASIS[p]), t);
-        tl.fromTo(p + " .streep", { scaleX: 0 }, { scaleX: 1, duration: 0.6, ease: "power2.out" }, t + 0.6);
-        tl.fromTo("#sch" + (i + 1), { opacity: 0, scaleX: 0.6 }, { opacity: 1, scaleX: 1, duration: 1.1, ease: "power3.out" }, t);
+        tl.fromTo("#p" + n, { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 1.1, ease: "power3.out" }, t);
+        tl.fromTo("#sp" + n, { opacity: 0, y: -40 }, { opacity: 0.16, y: 0, duration: 1.1, ease: "power3.out" }, t);
+        tl.fromTo("#p" + n + " .streep", { scaleX: 0 }, { scaleX: 1, duration: 0.6, ease: "power2.out" }, t + 0.6);
       });
 
-      // Zachte zweefbeweging, telkens in een ander ritme
-      [["#p1", "#sch1", 0], ["#p2", "#sch2", 1], ["#p3", "#sch3", 2]].forEach(([p, s, i]) => {
+      // Zachte zweefbeweging; de spiegeling beweegt in tegengestelde richting
+      [1, 2, 3].forEach((n, i) => {
         const start = 2.8 + i * 0.7;
         const periode = 3.2 + i * 0.4;
         for (let t = start; t < 16; t += periode) {
-          const len = Math.min(periode / 2, 16 - t);
-          tl.to(p, { y: -14, duration: len, ease: "sine.inOut" }, t);
-          tl.to(s, { opacity: 0.7, scaleX: 0.92, duration: len, ease: "sine.inOut" }, t);
-          if (t + len < 16) {
-            const len2 = Math.min(periode / 2, 16 - t - len);
-            tl.to(p, { y: 0, duration: len2, ease: "sine.inOut" }, t + len);
-            tl.to(s, { opacity: 1, scaleX: 1, duration: len2, ease: "sine.inOut" }, t + len);
+          const a = Math.min(periode / 2, 16 - t);
+          tl.to("#p" + n, { y: -10, duration: a, ease: "sine.inOut" }, t);
+          tl.to("#sp" + n, { y: 10, duration: a, ease: "sine.inOut" }, t);
+          if (t + a < 16) {
+            const b = Math.min(periode / 2, 16 - t - a);
+            tl.to("#p" + n, { y: 0, duration: b, ease: "sine.inOut" }, t + a);
+            tl.to("#sp" + n, { y: 0, duration: b, ease: "sine.inOut" }, t + a);
           }
         }
       });
 
       // 7–11.5 s: Hack of the Week licht op, de andere twee treden terug
-      tl.to("#p2", { z: 90, rotationY: -4, duration: 0.9, ease: "power3.out" }, 7);
+      tl.to("#p2", { scale: 1.06, duration: 0.9, ease: "power3.out" }, 7);
       tl.to("#gloed2", { opacity: 1, duration: 0.7, ease: "power2.out" }, 7.1);
-      tl.to("#p2 .balk", { backgroundColor: "#e4004f", duration: 0.6 }, 7.1);
-      tl.to(["#p1", "#p3"], { opacity: 0.45, duration: 0.8, ease: "power2.out", overwrite: "auto" }, 7);
-      tl.to(["#sch1", "#sch3"], { opacity: 0.4, duration: 0.8, overwrite: "auto" }, 7);
+      tl.to(["#p2-balk", "#sp2-balk"], { backgroundColor: "#e4004f", duration: 0.6 }, 7.1);
+      tl.fromTo(["#p1 .paneel", "#p3 .paneel"], { filter: "grayscale(0) brightness(1) blur(0px)" }, { filter: "grayscale(0.7) brightness(0.9) blur(1.5px)", duration: 0.8, ease: "power2.out" }, 7);
+      tl.to(["#sp1", "#sp3"], { opacity: 0.08, duration: 0.8, overwrite: "auto" }, 7);
 
-      tl.to("#p2", { z: 0, rotationY: -8, duration: 0.9, ease: "power2.inOut" }, 11.5);
+      tl.to("#p2", { scale: 1, duration: 0.9, ease: "power2.inOut" }, 11.5);
       tl.to("#gloed2", { opacity: 0, duration: 0.6 }, 11.5);
-      tl.to("#p2 .balk", { backgroundColor: "#003a7d", duration: 0.6 }, 11.5);
-      tl.to(["#p1", "#p3"], { opacity: 1, duration: 0.8, ease: "power2.inOut", overwrite: "auto" }, 11.5);
-      tl.to(["#sch1", "#sch3"], { opacity: 1, duration: 0.8, overwrite: "auto" }, 11.5);
+      tl.to(["#p2-balk", "#sp2-balk"], { backgroundColor: "#003a7d", duration: 0.6 }, 11.5);
+      tl.to(["#p1 .paneel", "#p3 .paneel"], { filter: "grayscale(0) brightness(1) blur(0px)", duration: 0.8, ease: "power2.inOut" }, 11.5);
+      tl.to(["#sp1", "#sp3"], { opacity: 0.16, duration: 0.8, overwrite: "auto" }, 11.5);
 
       window.__timelines["main"] = tl;
       tl.seek(0);

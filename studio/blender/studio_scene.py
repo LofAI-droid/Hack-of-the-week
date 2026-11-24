@@ -13,6 +13,14 @@ import bpy
 
 OUT = sys.argv[1] if len(sys.argv) > 1 else "studio-achtergrond.png"
 SAMPLES = int(sys.argv[2]) if len(sys.argv) > 2 else 128
+# derde argument "panelen": onzichtbare panelen die alleen schaduw werpen
+MET_PANELEN = len(sys.argv) > 3 and sys.argv[3] == "panelen"
+
+# Panelen (wereldcoördinaten, meter): middelpunt x, diepte y, onderkant z, breedte, hoogte
+PANEEL_Y = 2.5
+PANEEL_Z0 = 0.9
+PANEEL_B, PANEEL_H = 1.4, 2.0
+PANEEL_X = [0.8, 2.4, 4.0]
 
 # ---------- Huisstijl (sRGB hex) ----------
 NAVY = "#003a7d"
@@ -237,6 +245,32 @@ cam.data.sensor_width = 36
 cam.data.shift_y = -0.02
 scene.camera = cam
 
+
+# ---------- Panelen: enkel schaduw, onzichtbaar voor camera en spiegelingen ----------
+import json
+from bpy_extras.object_utils import world_to_camera_view
+from mathutils import Vector
+
+if MET_PANELEN:
+    M_P = mat_basic("paneel", hex_rgba("#ffffff"), rough=0.6)
+    for i, px in enumerate(PANEEL_X):
+        o = box(f"paneel{i+1}", px - PANEEL_B / 2, px + PANEEL_B / 2, PANEEL_Y - 0.02, PANEEL_Y + 0.02,
+                PANEEL_Z0, PANEEL_Z0 + PANEEL_H, M_P)
+        o.visible_camera = False
+        o.visible_glossy = False
+        o.visible_diffuse = False
+
+# pixelposities van de paneelhoeken, voor de HyperFrames-compositie
+bpy.context.view_layer.update()
+hoeken = []
+for px in PANEEL_X:
+    pts = []
+    for (x, z) in [(px - PANEEL_B / 2, PANEEL_Z0 + PANEEL_H), (px + PANEEL_B / 2, PANEEL_Z0),
+                   (px - PANEEL_B / 2, 0.0), (px + PANEEL_B / 2, 0.0)]:
+        v = world_to_camera_view(scene, cam, Vector((x, PANEEL_Y, z)))
+        pts.append([round(v.x * 1920, 1), round((1 - v.y) * 1080, 1)])
+    hoeken.append({"links_boven": pts[0], "rechts_onder": pts[1], "vloer_links": pts[2], "vloer_rechts": pts[3]})
+print("PANELEN", json.dumps(hoeken))
 
 # ---------- Render ----------
 scene.render.engine = "CYCLES"
