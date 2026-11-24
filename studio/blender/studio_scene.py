@@ -14,13 +14,19 @@ import bpy
 OUT = sys.argv[1] if len(sys.argv) > 1 else "studio-achtergrond.png"
 SAMPLES = int(sys.argv[2]) if len(sys.argv) > 2 else 128
 # derde argument "panelen": onzichtbare panelen die alleen schaduw werpen
-MET_PANELEN = len(sys.argv) > 3 and sys.argv[3] == "panelen"
+MODUS = sys.argv[3] if len(sys.argv) > 3 else "leeg"   # leeg | panelen | breed
+MET_PANELEN = MODUS in ("panelen", "breed")
 
 # Panelen (wereldcoördinaten, meter): middelpunt x, diepte y, onderkant z, breedte, hoogte
 PANEEL_Y = 2.5
 PANEEL_Z0 = 0.9
 PANEEL_B, PANEEL_H = 1.4, 2.0
 PANEEL_X = [0.8, 2.4, 4.0]
+if MODUS == "breed":
+    # één breed paneel voor tekstscènes
+    PANEEL_Z0 = 0.7
+    PANEEL_B, PANEEL_H = 4.8, 2.4
+    PANEEL_X = [2.4]
 
 # ---------- Huisstijl (sRGB hex) ----------
 NAVY = "#003a7d"

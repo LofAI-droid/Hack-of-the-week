@@ -1,0 +1,420 @@
+<!doctype html>
+<html lang="nl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <title>Hack of the Week #001 — Laat AI je video analyseren</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
+    <style>
+      @font-face {
+        font-family: "Montserrat";
+        src: url("assets/fonts/Montserrat-latin-var.woff2") format("woff2");
+        font-weight: 100 900;
+      }
+      :root {
+        --navy: #003a7d; --navy-deep: #013173; --blue: #0152af; --magenta: #e4004f;
+        --yellow: #fdb028; --sky: #86caf6; --surface: #ffffff; --surface-tint: #eaf4fd;
+        --ink-muted: #4a6283;
+        --font-sans: Montserrat, "Helvetica Neue", Arial, sans-serif;
+        --v-margin: 128px;
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1920px; height: 1080px; overflow: hidden; background: #dfe5ec; font-family: var(--font-sans); }
+      #root { position: relative; width: 1920px; height: 1080px; overflow: hidden; }
+      .laag { position: absolute; inset: 0; }
+      .laag img { width: 1920px; height: 1080px; display: block; }
+
+      .label { font-size: 28px; line-height: 1.3; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; }
+      .muted { color: var(--ink-muted); }
+      .streep { width: 140px; height: 10px; background: var(--magenta); transform-origin: left center; }
+
+      /* ---------- Studio ---------- */
+      #studio { position: absolute; inset: 0; transform-origin: 1391px 438px; }
+
+      /* drie kleine panelen (intro) */
+      .mini { position: absolute; top: 259px; width: 252px; height: 359px; }
+      .paneel {
+        position: absolute; inset: 0; border-radius: 6px; overflow: hidden; color: var(--navy);
+        background: linear-gradient(100deg, #f3f6f9 0%, #fbfcfd 55%, #ffffff 100%);
+        box-shadow: 0 1px 0 rgba(255,255,255,0.9) inset, -3px 0 0 rgba(0,40,90,0.06) inset, 0 10px 30px -12px rgba(0,40,90,0.25);
+      }
+      .paneel .balk { position: absolute; left: 0; top: 0; right: 0; height: 7px; background: var(--navy); }
+      .mini .paneel { padding: 26px 22px; display: flex; flex-direction: column; }
+      .mini .icoon { width: 76px; height: 76px; margin-top: 12px; }
+      .mini .klein { margin-top: auto; font-size: 18px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-muted); line-height: 1.3; }
+      .mini .titel { margin-top: 8px; font-size: 32px; line-height: 1.12; font-weight: 700; }
+      .mini .streep { margin-top: 14px; width: 52px; height: 5px; }
+      .gloed { position: absolute; inset: -2px; border-radius: 8px; opacity: 0; box-shadow: 0 0 0 3px var(--magenta), 0 20px 60px -8px rgba(228,0,79,0.35); }
+
+      /* breed paneel (tekstscènes) — positie uit Blender */
+      #breed { position: absolute; left: 960px; top: 223px; width: 862px; height: 431px; }
+      #breed .paneel { padding: 40px 48px; }
+      .inhoud { position: absolute; inset: 40px 48px; }
+      .inhoud .kop { font-size: 50px; line-height: 1.12; font-weight: 700; margin-top: 14px; }
+      .inhoud .streep { margin-top: 20px; width: 110px; height: 8px; }
+      .inhoud .tekst { font-size: 32px; line-height: 1.38; margin-top: 26px; }
+
+      .duo { display: flex; gap: 22px; margin-top: 26px; }
+      .chip { display: flex; align-items: center; gap: 14px; padding: 12px 22px 12px 14px; border-radius: 9999px; background: var(--surface-tint); font-size: 30px; font-weight: 700; }
+      .chip svg { width: 44px; height: 44px; }
+
+      .rijen { margin-top: 22px; }
+      .rij { display: flex; align-items: center; gap: 22px; padding: 9px 0; font-size: 30px; font-weight: 600; }
+      .tijd { background: var(--navy); color: var(--surface); font-weight: 700; font-size: 28px; padding: 6px 16px; border-radius: 9999px; font-variant-numeric: tabular-nums; }
+      .badge { position: absolute; right: 0; top: 0; border: 3px solid var(--magenta); color: var(--magenta); padding: 6px 14px; border-radius: 8px; font-size: 22px; }
+
+      .spiegel {
+        position: absolute; transform: scaleY(-1); opacity: 0.16; filter: blur(2px);
+        -webkit-mask-image: linear-gradient(0deg, #000 0%, transparent 45%); mask-image: linear-gradient(0deg, #000 0%, transparent 45%);
+      }
+      .spiegel .paneel { box-shadow: none; }
+
+      #presentator { position: absolute; left: 230px; bottom: 0; width: 560px; height: 830px; }
+      #presentator svg { width: 100%; height: 100%; }
+      .plaatshouder { position: absolute; left: 230px; bottom: 40px; width: 560px; text-align: center; font-size: 28px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--surface); }
+
+      /* naambalk */
+      #naambalk { position: absolute; left: var(--v-margin); bottom: 96px; display: flex; background: var(--navy); color: var(--surface); border-radius: 8px; overflow: hidden; }
+      #naambalk .accent { width: 12px; background: var(--magenta); }
+      #naambalk .tekst { padding: 18px 30px; }
+      #naambalk .naam { font-size: 34px; font-weight: 700; line-height: 1.2; }
+      #naambalk .rol { font-size: 28px; line-height: 1.3; opacity: 0.92; }
+
+      /* controle-melding onder het paneel */
+      #controle { position: absolute; left: 960px; top: 690px; display: flex; align-items: center; gap: 16px; background: var(--navy); color: var(--surface); padding: 16px 28px 16px 18px; border-radius: 9999px; font-size: 30px; font-weight: 600; }
+      #controle .dot { width: 40px; height: 40px; border-radius: 9999px; background: var(--yellow); color: var(--navy); font-weight: 800; font-size: 28px; display: flex; align-items: center; justify-content: center; }
+
+      /* ---------- Titelkaart en outro (navy) ---------- */
+      .navy { position: absolute; inset: 0; background: var(--navy); color: var(--surface); overflow: hidden; }
+      .circle { position: absolute; border-radius: 9999px; }
+      .c-blue { background: radial-gradient(circle at 35% 30%, #1a6fd0 0%, var(--blue) 60%); }
+      .c-magenta { background: radial-gradient(circle at 35% 30%, #ff2a6e 0%, var(--magenta) 65%); }
+      .c-yellow { background: radial-gradient(circle at 35% 30%, #ffc85a 0%, var(--yellow) 65%); }
+      .c-sky { background: radial-gradient(circle at 35% 30%, #a8daf9 0%, var(--sky) 65%); }
+      .logo { position: absolute; left: var(--v-margin); top: 96px; width: 300px; }
+      .links { position: absolute; left: var(--v-margin); top: 54%; transform: translateY(-50%); width: 1050px; }
+      .display { font-size: 124px; line-height: 1.02; font-weight: 700; letter-spacing: -0.015em; }
+      .pil { display: inline-block; background: var(--yellow); color: var(--navy); font-weight: 700; font-size: 36px; line-height: 1; padding: 14px 26px; border-radius: 9999px; }
+      .h1 { font-size: 88px; line-height: 1.1; font-weight: 700; }
+      .body { font-size: 38px; line-height: 1.42; }
+      .regel { display: flex; align-items: center; gap: 20px; }
+      .regel + .regel { margin-top: 14px; }
+      .regel .dot { width: 18px; height: 18px; border-radius: 9999px; background: var(--sky); flex: none; }
+
+      /* ---------- Demonstratie ---------- */
+      #demo { position: absolute; inset: 0; background: var(--surface-tint); color: var(--navy); overflow: hidden; }
+      #demo .links { width: 640px; top: 50%; }
+      #demo .h2 { font-size: 64px; line-height: 1.15; font-weight: 700; margin-top: 18px; }
+      #demo .streep { margin-top: 26px; }
+      #demo .body { margin-top: 36px; font-size: 36px; }
+      .venster {
+        position: absolute; left: 880px; top: 170px; width: 912px; height: 740px; background: var(--surface);
+        border-radius: 12px; box-shadow: 0 40px 90px -30px rgba(0,40,90,0.35); overflow: hidden;
+      }
+      .venster .kop { height: 88px; display: flex; align-items: center; gap: 18px; padding: 0 32px; border-bottom: 2px solid #e3ebf4; }
+      .venster .avatar { width: 48px; height: 48px; border-radius: 9999px; background: var(--navy); display: flex; align-items: center; justify-content: center; }
+      .venster .naam { font-size: 30px; font-weight: 700; }
+      .venster .naam small { font-weight: 400; color: var(--ink-muted); font-size: 28px; margin-left: 10px; }
+      .gesprek { position: absolute; left: 32px; right: 32px; top: 112px; bottom: 340px; }
+      .bubbel { position: absolute; right: 0; top: 0; width: 640px; background: var(--surface-tint); border-radius: 16px 16px 4px 16px; padding: 20px 24px; font-size: 28px; line-height: 1.4; opacity: 0; }
+      .antwoord { position: absolute; left: 0; top: 300px; display: flex; align-items: center; gap: 16px; font-size: 28px; color: var(--ink-muted); opacity: 0; }
+      .antwoord i { display: inline-block; width: 14px; height: 14px; border-radius: 9999px; background: var(--navy); }
+      .invoer { position: absolute; left: 32px; right: 32px; bottom: 32px; border: 3px solid #cddcec; border-radius: 14px; padding: 20px 24px 20px; height: 300px; }
+      .bestand { display: inline-flex; align-items: center; gap: 14px; background: var(--surface-tint); border-radius: 10px; padding: 10px 18px 10px 10px; font-size: 28px; font-weight: 600; position: relative; overflow: hidden; }
+      .bestand .vid { width: 52px; height: 40px; border-radius: 6px; background: var(--navy); display: flex; align-items: center; justify-content: center; }
+      .bestand .voortgang { position: absolute; left: 0; bottom: 0; height: 5px; width: 100%; background: var(--magenta); transform-origin: left center; }
+      .prompt { margin-top: 16px; font-size: 30px; line-height: 1.38; min-height: 80px; padding-right: 90px; }
+      .prompt .c { opacity: 0; }
+      .verstuur { position: absolute; right: 22px; bottom: 22px; width: 64px; height: 64px; border-radius: 9999px; background: #cddcec; display: flex; align-items: center; justify-content: center; }
+      .nagebootst { position: absolute; right: 128px; top: 96px; border: 3px solid var(--magenta); color: var(--magenta); padding: 8px 16px; border-radius: 8px; }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="45" data-width="1920" data-height="1080">
+
+      <!-- ================= STUDIO ================= -->
+      <div id="studio" class="clip" data-start="0" data-duration="45" data-track-index="0" data-hold>
+        <div class="laag"><img src="assets/studio/studio-achtergrond.png" alt="" /></div>
+        <div class="laag" id="bg-panelen"><img src="assets/studio/studio-achtergrond-panelen.png" alt="" /></div>
+        <div class="laag" id="bg-breed" style="opacity:0"><img src="assets/studio/studio-achtergrond-breed.png" alt="" /></div>
+
+        <!-- spiegelingen -->
+        <div class="spiegel mini-sp" id="sp1" style="left:978px;top:942px;width:252px;height:359px;"><div class="paneel"><div class="balk"></div></div></div>
+        <div class="spiegel mini-sp" id="sp2" style="left:1265px;top:942px;width:252px;height:359px;"><div class="paneel"><div class="balk" id="sp2-balk"></div></div></div>
+        <div class="spiegel mini-sp" id="sp3" style="left:1553px;top:942px;width:252px;height:359px;"><div class="paneel"><div class="balk"></div></div></div>
+        <div class="spiegel" id="sp-breed" style="left:960px;top:906px;width:862px;height:431px;opacity:0"><div class="paneel"><div class="balk"></div></div></div>
+
+        <!-- drie panelen -->
+        <div class="mini" id="p1" style="left:978px;">
+          <div class="paneel"><div class="balk"></div>
+            <svg class="icoon" viewBox="0 0 96 96" aria-hidden="true"><circle cx="48" cy="48" r="44" fill="#eaf4fd" stroke="#003a7d" stroke-width="4" /><path d="M40 32 L66 48 L40 64 Z" fill="#003a7d" /></svg>
+            <div class="klein" data-layout-ignore>Van vraag naar inzicht</div><div class="titel">Kennisclips</div><div class="streep"></div>
+          </div>
+        </div>
+        <div class="mini" id="p2" style="left:1265px;">
+          <div class="paneel"><div class="balk" id="p2-balk"></div>
+            <svg class="icoon" viewBox="0 0 96 96" aria-hidden="true"><circle cx="48" cy="48" r="44" fill="#fdb028" /><path d="M53 20 L33 52 L47 52 L42 76 L64 42 L50 42 Z" fill="#003a7d" /></svg>
+            <div class="klein" data-layout-ignore>Van probleem naar oplossing</div><div class="titel">Hack of the Week</div><div class="streep"></div>
+          </div>
+          <div class="gloed" id="gloed2"></div>
+        </div>
+        <div class="mini" id="p3" style="left:1553px;">
+          <div class="paneel"><div class="balk"></div>
+            <svg class="icoon" viewBox="0 0 96 96" aria-hidden="true"><circle cx="48" cy="48" r="44" fill="#eaf4fd" stroke="#003a7d" stroke-width="4" /><g stroke="#003a7d" stroke-width="3" stroke-dasharray="4 4"><line x1="28" y1="34" x2="52" y2="26" /><line x1="52" y1="26" x2="68" y2="50" /><line x1="68" y1="50" x2="44" y2="68" /><line x1="44" y1="68" x2="28" y2="34" /></g><circle cx="28" cy="34" r="6" fill="#003a7d" /><circle cx="52" cy="26" r="6" fill="#e4004f" /><circle cx="68" cy="50" r="6" fill="#003a7d" /><circle cx="44" cy="68" r="6" fill="#0152af" /></svg>
+            <div class="klein" data-layout-ignore>Wat kan wat</div><div class="titel">AI-tools</div><div class="streep"></div>
+          </div>
+        </div>
+
+        <!-- breed paneel met wisselende inhoud -->
+        <div id="breed" style="opacity:0">
+          <div class="paneel"><div class="balk"></div></div>
+
+          <div class="inhoud" id="i-vraag">
+            <div class="label muted">Vraag van de week</div>
+            <div class="kop">Een video analyseren met AI?</div>
+            <div class="streep"></div>
+            <div class="tekst">Kun je een video laten analyseren zonder hem zelf volledig te bekijken?</div>
+          </div>
+
+          <div class="inhoud" id="i-inzicht" style="opacity:0">
+            <div class="label muted">Goed om te weten</div>
+            <div class="kop">Een video is beeld én geluid.</div>
+            <div class="streep"></div>
+            <div class="duo">
+              <div class="chip" id="chip-beeld"><svg viewBox="0 0 44 44" aria-hidden="true"><rect x="4" y="9" width="36" height="26" rx="4" fill="#003a7d"/><path d="M18 15 L29 22 L18 29 Z" fill="#fff"/></svg>Beeld</div>
+              <div class="chip" id="chip-geluid"><svg viewBox="0 0 44 44" aria-hidden="true"><g stroke="#003a7d" stroke-width="4" stroke-linecap="round"><line x1="8" y1="18" x2="8" y2="26"/><line x1="15" y1="12" x2="15" y2="32"/><line x1="22" y1="6" x2="22" y2="38"/><line x1="29" y1="13" x2="29" y2="31"/><line x1="36" y1="18" x2="36" y2="26"/></g></svg>Geluid</div>
+            </div>
+            <div class="tekst" id="inzicht-zin" style="margin-top:22px;">Niet elke AI-tool analyseert beide even goed.</div>
+          </div>
+
+          <div class="inhoud" id="i-resultaat" style="opacity:0">
+            <div class="label muted">Resultaat</div>
+            <div class="badge label" data-layout-ignore>Voorbeeld</div>
+            <div class="kop">Van video naar overzicht.</div>
+            <div class="rijen">
+              <div class="rij" id="r1"><span class="tijd">00:12</span>Inzicht 1</div>
+              <div class="rij" id="r2"><span class="tijd">00:25</span>Inzicht 2</div>
+              <div class="rij" id="r3"><span class="tijd">00:48</span>Inzicht 3</div>
+            </div>
+            <div class="tekst" id="res-zin" style="margin-top:12px;font-size:28px;">Zo vind je gericht de relevante fragmenten terug.</div>
+          </div>
+        </div>
+
+        <div id="presentator">
+          <svg viewBox="0 0 560 830" aria-hidden="true">
+            <defs><linearGradient id="silh" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4b6584" /><stop offset="1" stop-color="#2c4563" /></linearGradient></defs>
+            <ellipse cx="280" cy="170" rx="92" ry="112" fill="url(#silh)" />
+            <rect x="238" y="262" width="84" height="80" rx="30" fill="url(#silh)" />
+            <path d="M60 830 C60 560 90 400 180 352 C220 332 250 326 280 326 C310 326 340 332 380 352 C470 400 500 560 500 830 Z" fill="url(#silh)" />
+          </svg>
+        </div>
+        <div class="plaatshouder">Jouw opname</div>
+      </div>
+
+      <!-- naambalk en controle-melding (niet mee inzoomen) -->
+      <div id="naambalk" class="clip" data-start="4.4" data-duration="4.4" data-track-index="1">
+        <div class="accent"></div>
+        <div class="tekst"><div class="naam">Peter Vanbrabant</div><div class="rol">GenAI Kennishub · UCLL Hogeschool</div></div>
+      </div>
+      <div id="controle" class="clip" data-start="35.2" data-duration="4.9" data-track-index="2"><span class="dot">!</span>Controleer de inhoud en tijdcodes altijd.</div>
+
+      <!-- ================= TITELKAART (intro) ================= -->
+      <div id="titel" class="navy clip" data-start="1.9" data-duration="2.5" data-track-index="3">
+        <div class="circle c-blue" data-layout-allow-overflow id="tc1" style="width:900px;height:900px;left:1180px;top:-420px;"></div>
+        <div class="circle c-magenta" data-layout-allow-overflow id="tc2" style="width:620px;height:620px;left:1380px;top:120px;"></div>
+        <div class="circle c-yellow" data-layout-allow-overflow id="tc3" style="width:700px;height:700px;left:1600px;top:420px;"></div>
+        <div class="circle c-sky" data-layout-allow-overflow id="tc4" style="width:560px;height:560px;left:1060px;top:640px;"></div>
+        <img class="logo" id="t-logo" src="assets/logo/PNG-Logo_UCLL_CMYK_wit.png" alt="UCLL Hogeschool" />
+        <div class="links" style="top:57%;">
+          <div class="label" id="t-label">GenAI Kennishub</div>
+          <div class="display" id="t-titel" style="margin-top:22px;">Hack of<br />the Week</div>
+          <div class="streep" id="t-streep" style="margin-top:30px;"></div>
+          <div style="margin-top:38px;"><span class="pil" id="t-pil">#001</span></div>
+        </div>
+      </div>
+
+      <!-- ================= DEMONSTRATIE ================= -->
+      <div id="demo" class="clip" data-start="15.8" data-duration="15.8" data-track-index="4">
+        <div class="links">
+          <div class="label muted" id="d-label">Demonstratie</div>
+          <div class="h2" id="d-kop">Probeer het zelf.</div>
+          <div class="streep" id="d-streep"></div>
+          <p class="body" id="d-tekst">Upload een niet-vertrouwelijke video naar bijvoorbeeld Gemini en gebruik deze prompt:</p>
+        </div>
+        <div class="nagebootst label" id="d-nagebootst">Nagebootst scherm</div>
+        <div class="venster" id="venster">
+          <div class="kop">
+            <div class="avatar"><svg width="28" height="28" viewBox="0 0 28 28" aria-hidden="true"><g stroke="#fff" stroke-width="2" stroke-dasharray="3 3"><line x1="6" y1="9" x2="15" y2="5"/><line x1="15" y1="5" x2="22" y2="15"/><line x1="22" y1="15" x2="12" y2="22"/><line x1="12" y1="22" x2="6" y2="9"/></g><circle cx="6" cy="9" r="3" fill="#fff"/><circle cx="15" cy="5" r="3" fill="#e4004f"/><circle cx="22" cy="15" r="3" fill="#fff"/><circle cx="12" cy="22" r="3" fill="#86caf6"/></svg></div>
+            <div class="naam">AI-assistent<small>bijvoorbeeld Gemini</small></div>
+          </div>
+          <div class="gesprek">
+            <div class="bubbel" id="bubbel"><span style="font-weight:700;">voorbeeld.mp4</span><br />Analyseer het beeld en het geluid van deze video. Geef de drie belangrijkste inzichten en vermeld bij elk inzicht de tijdcode.</div>
+            <div class="antwoord" id="antwoord"><span>Bezig met analyseren</span><i id="d1"></i><i id="d2"></i><i id="d3"></i></div>
+          </div>
+          <div class="invoer" id="invoer">
+            <div class="bestand" id="bestand">
+              <div class="vid"><svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><path d="M6 4 L16 10 L6 16 Z" fill="#fff"/></svg></div>
+              voorbeeld.mp4 <span class="muted" style="font-weight:400;">· 0:58</span>
+              <div class="voortgang" id="voortgang"></div>
+            </div>
+            <div class="prompt" id="prompt">Analyseer het beeld en het geluid van deze video. Geef de drie belangrijkste inzichten en vermeld bij elk inzicht de tijdcode.</div>
+            <div class="verstuur" id="verstuur"><svg width="30" height="30" viewBox="0 0 30 30" aria-hidden="true"><path d="M15 24 L15 7 M8 13 L15 6 L22 13" stroke="#fff" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ================= OUTRO ================= -->
+      <div id="outro" class="navy clip" data-start="39.6" data-duration="5.4" data-track-index="5">
+        <div class="circle c-blue" data-layout-allow-overflow id="oc1" style="width:900px;height:900px;left:1180px;top:-420px;"></div>
+        <div class="circle c-magenta" data-layout-allow-overflow id="oc2" style="width:620px;height:620px;left:1380px;top:120px;"></div>
+        <div class="circle c-yellow" data-layout-allow-overflow id="oc3" style="width:700px;height:700px;left:1600px;top:420px;"></div>
+        <div class="circle c-sky" data-layout-allow-overflow id="oc4" style="width:560px;height:560px;left:1060px;top:640px;"></div>
+        <img class="logo" id="o-logo" src="assets/logo/PNG-Logo_UCLL_CMYK_wit.png" alt="UCLL Hogeschool" />
+        <div class="links" style="top:58%;">
+          <div class="h1" id="o-kop">GenAI Kennishub</div>
+          <div class="streep" id="o-streep" style="margin-top:28px;"></div>
+          <div class="body" id="o-slogan" style="margin-top:30px;font-weight:600;">Ontdek. Leer. Experimenteer.</div>
+          <div style="margin-top:40px;">
+            <div class="regel body" id="o-r1"><span class="dot"></span>Elke vrijdag: kom langs in D210</div>
+            <div class="regel body" id="o-r2"><span class="dot"></span>Mail of Teams: voornaam.naam@ucll.be</div>
+          </div>
+          <div class="label" id="o-reeks" style="margin-top:44px;opacity:0.85;">Hack of the Week · #001</div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // prompt opdelen in losse letters om ze te laten "typen"
+      (function () {
+        const el = document.getElementById("prompt");
+        const t = el.textContent;
+        el.innerHTML = t.split("").map(ch => '<span class="c">' + (ch === " " ? "&nbsp;" : ch) + "</span>").join("").replace(/&nbsp;<\/span>/g, " </span>");
+      })();
+
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+      const IN = { ease: "power3.out", duration: 0.9 };
+      function rise(sel, at, extra) { tl.fromTo(sel, { opacity: 0, y: 26 }, Object.assign({ opacity: 1, y: 0 }, IN, extra || {}), at); }
+      function streep(sel, at) { tl.fromTo(sel, { scaleX: 0 }, { scaleX: 1, duration: 0.6, ease: "power2.out" }, at); }
+      function zweef(sel, spiegel, van, tot, amp, periode) {
+        for (let t = van; t < tot; t += periode) {
+          const a = Math.min(periode / 2, tot - t);
+          tl.to(sel, { y: -amp, duration: a, ease: "sine.inOut" }, t);
+          if (spiegel) tl.to(spiegel, { y: amp, duration: a, ease: "sine.inOut" }, t);
+          if (t + a < tot) {
+            const b = Math.min(periode / 2, tot - t - a);
+            tl.to(sel, { y: 0, duration: b, ease: "sine.inOut" }, t + a);
+            if (spiegel) tl.to(spiegel, { y: 0, duration: b, ease: "sine.inOut" }, t + a);
+          }
+        }
+      }
+
+      // ===== 0–4 s · INTRO =====
+      tl.fromTo("#bg-panelen", { opacity: 0 }, { opacity: 1, duration: 1.0, ease: "power1.inOut" }, 0.1);
+      [1, 2, 3].forEach((n, i) => {
+        const t = 0.1 + i * 0.2;
+        tl.fromTo("#p" + n, { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.8, ease: "power3.out" }, t);
+        tl.fromTo("#sp" + n, { opacity: 0, y: -40 }, { opacity: 0.16, y: 0, duration: 0.8, ease: "power3.out" }, t);
+      });
+      tl.to("#gloed2", { opacity: 1, duration: 0.4, ease: "power2.out" }, 0.9);
+      tl.to(["#p2-balk", "#sp2-balk"], { backgroundColor: "#e4004f", duration: 0.4 }, 0.9);
+      tl.fromTo(["#p1 .paneel", "#p3 .paneel"], { filter: "grayscale(0) brightness(1) blur(0px)" }, { filter: "grayscale(0.7) brightness(0.9) blur(1.5px)", duration: 0.5 }, 0.9);
+      // camera duikt het paneel in
+      tl.fromTo("#studio", { scale: 1 }, { scale: 2.6, duration: 0.9, ease: "power3.in" }, 1.25);
+      tl.fromTo("#titel", { opacity: 0 }, { opacity: 1, duration: 0.35, ease: "power1.out" }, 1.9);
+      ["#tc1", "#tc2", "#tc3", "#tc4"].forEach((c, i) => {
+        tl.fromTo(c, { scale: 0.75, x: 90 }, { scale: 1, x: 0, duration: 1.3, ease: "power2.out" }, 1.9 + i * 0.08);
+      });
+      tl.fromTo("#t-logo", { opacity: 0 }, { opacity: 1, duration: 0.5 }, 2.0);
+      rise("#t-label", 2.0, { duration: 0.6 });
+      rise("#t-titel", 2.1, { duration: 0.7 });
+      streep("#t-streep", 2.5);
+      tl.fromTo("#t-pil", { opacity: 0, scale: 0.6 }, { opacity: 1, scale: 1, duration: 0.5, ease: "back.out(2)" }, 2.7);
+      // achter de titelkaart: studio terugzetten voor de volgende scène
+      tl.set("#studio", { scale: 1 }, 2.4);
+      tl.set(["#p1", "#p2", "#p3", "#sp1", "#sp2", "#sp3"], { opacity: 0 }, 2.4);
+      tl.set("#bg-panelen", { opacity: 0 }, 2.4);
+      tl.set("#bg-breed", { opacity: 1 }, 2.4);
+      tl.to("#titel", { opacity: 0, duration: 0.6, ease: "power1.inOut" }, 3.8);
+
+      // ===== 4–9.5 s · PROBLEEMSTELLING =====
+      tl.fromTo("#breed", { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 1.0, ease: "power3.out" }, 4.0);
+      tl.fromTo("#sp-breed", { opacity: 0, y: -40 }, { opacity: 0.16, y: 0, duration: 1.0, ease: "power3.out" }, 4.0);
+      rise("#i-vraag .label", 4.4);
+      rise("#i-vraag .kop", 4.55);
+      streep("#i-vraag .streep", 5.1);
+      rise("#i-vraag .tekst", 5.4);
+      tl.fromTo("#naambalk", { opacity: 0, x: -60 }, { opacity: 1, x: 0, duration: 0.8, ease: "power3.out" }, 4.6);
+      tl.to("#naambalk", { opacity: 0, x: -60, duration: 0.5, ease: "power2.in" }, 8.3);
+      zweef("#breed", "#sp-breed", 5.0, 15.4, 8, 3.6);
+
+      // ===== 9.5–16 s · INZICHT =====
+      tl.to("#i-vraag", { opacity: 0, y: -20, duration: 0.5, ease: "power2.in" }, 9.4);
+      tl.set("#i-inzicht", { opacity: 1 }, 9.9);
+      rise("#i-inzicht .label", 9.9);
+      rise("#i-inzicht .kop", 10.05);
+      streep("#i-inzicht .streep", 10.6);
+      tl.fromTo("#chip-beeld", { opacity: 0, scale: 0.7 }, { opacity: 1, scale: 1, duration: 0.6, ease: "back.out(2)" }, 11.0);
+      tl.fromTo("#chip-geluid", { opacity: 0, scale: 0.7 }, { opacity: 1, scale: 1, duration: 0.6, ease: "back.out(2)" }, 11.4);
+      rise("#inzicht-zin", 12.4);
+
+      // ===== 16–31 s · DEMONSTRATIE =====
+      tl.set("#i-inzicht", { opacity: 0 }, 16.3);
+      tl.to("#studio", { scale: 1.9, duration: 0.8, ease: "power3.in" }, 15.2);
+      tl.fromTo("#demo", { opacity: 0 }, { opacity: 1, duration: 0.45, ease: "power1.out" }, 15.8);
+      rise("#d-label", 16.3);
+      rise("#d-kop", 16.45);
+      streep("#d-streep", 17.0);
+      rise("#d-tekst", 17.3);
+      tl.fromTo("#venster", { opacity: 0, y: 50 }, { opacity: 1, y: 0, duration: 1.0, ease: "power3.out" }, 17.6);
+      tl.fromTo("#d-nagebootst", { opacity: 0 }, { opacity: 1, duration: 0.6 }, 18.2);
+      tl.fromTo("#bestand", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.5, ease: "power2.out" }, 18.6);
+      tl.fromTo("#voortgang", { scaleX: 0 }, { scaleX: 1, duration: 1.2, ease: "power1.inOut" }, 18.8);
+      tl.to("#voortgang", { opacity: 0, duration: 0.3 }, 20.0);
+      tl.to("#prompt .c", { opacity: 1, duration: 0.01, stagger: 5.6 / 124 }, 20.3);
+      tl.to("#verstuur", { backgroundColor: "#003a7d", duration: 0.3 }, 26.0);
+      tl.to("#verstuur", { scale: 0.88, duration: 0.12, yoyo: true, repeat: 1 }, 26.9);
+      tl.to(["#bestand", "#prompt"], { opacity: 0, duration: 0.3 }, 27.2);
+      tl.to("#verstuur", { backgroundColor: "#cddcec", duration: 0.3 }, 27.2);
+      tl.fromTo("#bubbel", { opacity: 0, y: 260 }, { opacity: 1, y: 0, duration: 0.7, ease: "power3.out" }, 27.25);
+      tl.to("#antwoord", { opacity: 1, duration: 0.5 }, 28.0);
+      tl.set(["#d1", "#d2", "#d3"], { opacity: 0.25 }, 0);
+      ["#d1", "#d2", "#d3"].forEach((d, i) => {
+        for (let t = 28.2 + i * 0.18; t < 31; t += 0.9) {
+          tl.to(d, { opacity: 1, duration: 0.3, ease: "sine.inOut" }, t);
+          tl.to(d, { opacity: 0.25, duration: 0.3, ease: "sine.inOut" }, t + 0.3);
+        }
+      });
+
+      // ===== 31–40 s · RESULTAAT =====
+      tl.set("#i-inzicht", { opacity: 0 }, 30.9);
+      tl.set("#i-resultaat", { opacity: 1 }, 30.9);
+      tl.to("#demo", { opacity: 0, duration: 0.5, ease: "power1.in" }, 31.0);
+      tl.to("#studio", { scale: 1, duration: 1.0, ease: "power3.out" }, 31.0);
+      rise("#i-resultaat > .label.muted", 31.6);
+      tl.fromTo("#i-resultaat .badge", { opacity: 0 }, { opacity: 1, duration: 0.6 }, 31.8);
+      rise("#i-resultaat .kop", 31.75);
+      ["#r1", "#r2", "#r3"].forEach((r, i) => rise(r, 32.5 + i * 0.5));
+      rise("#res-zin", 34.2);
+      tl.fromTo("#controle", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.7, ease: "power3.out" }, 35.2);
+      zweef("#breed", "#sp-breed", 32.0, 39.6, 8, 3.6);
+
+      // ===== 40–45 s · OUTRO =====
+      tl.fromTo("#outro", { opacity: 0 }, { opacity: 1, duration: 0.6, ease: "power1.inOut" }, 39.6);
+      ["#oc1", "#oc2", "#oc3", "#oc4"].forEach((c, i) => {
+        tl.fromTo(c, { scale: 0.75, x: 90 }, { scale: 1, x: 0, duration: 1.4, ease: "power2.out" }, 39.7 + i * 0.1);
+      });
+      tl.fromTo("#o-logo", { opacity: 0 }, { opacity: 1, duration: 0.7 }, 40.0);
+      rise("#o-kop", 40.1);
+      streep("#o-streep", 40.6);
+      rise("#o-slogan", 40.8);
+      rise("#o-r1", 41.3);
+      rise("#o-r2", 41.55);
+      rise("#o-reeks", 41.9);
+      tl.to("#outro .links, #o-logo", { opacity: 0, duration: 0.7, ease: "power1.in" }, 44.2);
+
+      window.__timelines["main"] = tl;
+      tl.seek(0);
+    </script>
+  </body>
+</html>
