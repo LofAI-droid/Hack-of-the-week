@@ -4,3 +4,5 @@ renders/
 node_modules/
 *.hf-transaction-*/
 work-*/
+*.mov
+*.MOV

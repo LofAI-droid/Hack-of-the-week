@@ -130,10 +130,10 @@
     </style>
   </head>
   <body>
-    <div id="root" data-composition-id="main" data-start="0" data-duration="45" data-width="1920" data-height="1080">
+    <div id="root" data-composition-id="main" data-start="0" data-duration="57" data-width="1920" data-height="1080">
 
       <!-- ================= STUDIO ================= -->
-      <div id="studio" class="clip" data-start="0" data-duration="45" data-track-index="0" data-hold>
+      <div id="studio" class="clip" data-start="0" data-duration="57" data-track-index="0" data-hold>
         <div class="laag"><img src="assets/studio/studio-achtergrond.png" alt="" /></div>
         <div class="laag" id="bg-panelen" style="display:none"><img src="assets/studio/studio-achtergrond-panelen.png" alt="" /></div>
         <div class="laag" id="bg-breed"><img src="assets/studio/studio-achtergrond-breed.png" alt="" /></div>
@@ -192,9 +192,9 @@
             <div class="badge label" data-layout-ignore>Voorbeeld</div>
             <div class="kop">Van video naar overzicht.</div>
             <div class="rijen">
-              <div class="rij" id="r1"><span class="tijd">00:12</span>Inzicht 1</div>
-              <div class="rij" id="r2"><span class="tijd">00:25</span>Inzicht 2</div>
-              <div class="rij" id="r3"><span class="tijd">00:48</span>Inzicht 3</div>
+              <div class="rij" id="r1"><span class="tijd">00:02</span>Inzicht 1</div>
+              <div class="rij" id="r2"><span class="tijd">00:05</span>Inzicht 2</div>
+              <div class="rij" id="r3"><span class="tijd">00:08</span>Inzicht 3</div>
             </div>
             <div class="tekst" id="res-zin" style="margin-top:12px;font-size:28px;">Zo vind je gericht de relevante fragmenten terug.</div>
           </div>
@@ -212,7 +212,7 @@
       </div>
 
       <!-- naambalk en controle-melding (niet mee inzoomen) -->
-      <div id="controle" class="clip" data-start="35.2" data-duration="4.9" data-track-index="2"><span class="dot">!</span>Controleer de inhoud en tijdcodes altijd.</div>
+      <div id="controle" class="clip" data-start="47.2" data-duration="4.9" data-track-index="2"><span class="dot">!</span>Controleer de inhoud en tijdcodes altijd.</div>
 
       <!-- ================= TITELKAART (intro) ================= -->
       <div id="titel" class="navy clip" data-start="0" data-duration="4.4" data-track-index="3">
@@ -229,8 +229,24 @@
         </div>
       </div>
 
+      <!-- ================= DE TESTVIDEO ================= -->
+      <div id="tvscene" class="clip" data-start="15.8" data-duration="12.5" data-track-index="6" style="position:absolute;inset:0;background:var(--surface-tint);color:var(--navy);">
+        <div class="links" style="width:720px;top:50%;">
+          <div class="label muted" id="tv-label">De testvideo</div>
+          <div class="h2" id="tv-kop" style="font-size:64px;line-height:1.15;font-weight:700;margin-top:18px;">Kijk en luister mee.</div>
+          <div class="streep" id="tv-streep" style="margin-top:26px;"></div>
+          <p class="body" id="tv-tekst" style="margin-top:36px;font-size:36px;">Wat wordt er gezegd? En wat gebeurt er alleen in beeld?</p>
+        </div>
+        <div id="tv-tijd" style="position:absolute;left:1132px;top:984px;width:484px;text-align:center;">
+          <span class="tijd" id="tv-tijd-tekst" style="font-size:30px;">00:00</span>
+        </div>
+      </div>
+      <video id="tv" class="clip" data-start="16.6" data-duration="10.878" data-track-index="7" data-has-audio="true"
+        src="assets/media/testvideo.mp4"
+        style="position:absolute;left:1132px;top:100px;width:484px;height:860px;object-fit:cover;border-radius:24px;box-shadow:0 40px 90px -30px rgba(0,40,90,0.4);"></video>
+
       <!-- ================= DEMONSTRATIE ================= -->
-      <div id="demo" class="clip" data-start="15.8" data-duration="15.8" data-track-index="4">
+      <div id="demo" class="clip" data-start="27.8" data-duration="15.8" data-track-index="4">
         <div class="links">
           <div class="label muted" id="d-label">Demonstratie</div>
           <div class="h2" id="d-kop">Probeer het zelf.</div>
@@ -244,13 +260,13 @@
             <div class="naam">AI-assistent<small>bijvoorbeeld Gemini</small></div>
           </div>
           <div class="gesprek">
-            <div class="bubbel" id="bubbel"><span style="font-weight:700;">voorbeeld.mp4</span><br />Analyseer het beeld en het geluid van deze video. Geef de drie belangrijkste inzichten en vermeld bij elk inzicht de tijdcode.</div>
+            <div class="bubbel" id="bubbel"><span style="font-weight:700;">testvideo.mp4</span><br />Analyseer het beeld en het geluid van deze video. Geef de drie belangrijkste inzichten en vermeld bij elk inzicht de tijdcode.</div>
             <div class="antwoord" id="antwoord"><span>Bezig met analyseren</span><i id="d1"></i><i id="d2"></i><i id="d3"></i></div>
           </div>
           <div class="invoer" id="invoer">
             <div class="bestand" id="bestand">
               <div class="vid"><svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><path d="M6 4 L16 10 L6 16 Z" fill="#fff"/></svg></div>
-              voorbeeld.mp4 <span class="muted" style="font-weight:400;">· 0:58</span>
+              testvideo.mp4 <span class="muted" style="font-weight:400;">· 0:11</span>
               <div class="voortgang" id="voortgang"></div>
             </div>
             <div class="prompt" id="prompt">Analyseer het beeld en het geluid van deze video. Geef de drie belangrijkste inzichten en vermeld bij elk inzicht de tijdcode.</div>
@@ -260,7 +276,7 @@
       </div>
 
       <!-- ================= OUTRO ================= -->
-      <div id="outro" class="navy clip" data-start="39.6" data-duration="5.4" data-track-index="5">
+      <div id="outro" class="navy clip" data-start="51.6" data-duration="5.4" data-track-index="5">
         <div class="circle c-blue" data-layout-allow-overflow id="oc1" style="width:900px;height:900px;left:1180px;top:-420px;"></div>
         <div class="circle c-magenta" data-layout-allow-overflow id="oc2" style="width:620px;height:620px;left:1380px;top:120px;"></div>
         <div class="circle c-yellow" data-layout-allow-overflow id="oc3" style="width:700px;height:700px;left:1600px;top:420px;"></div>
@@ -339,57 +355,71 @@
       // ===== 16–31 s · DEMONSTRATIE =====
       tl.set("#i-inzicht", { opacity: 0 }, 16.3);
       tl.to("#studio", { scale: 1.9, duration: 0.8, ease: "power3.in" }, 15.2);
-      tl.fromTo("#demo", { opacity: 0 }, { opacity: 1, duration: 0.45, ease: "power1.out" }, 15.8);
-      rise("#d-label", 16.3);
-      rise("#d-kop", 16.45);
-      streep("#d-streep", 17.0);
-      rise("#d-tekst", 17.3);
-      tl.fromTo("#venster", { opacity: 0, y: 50 }, { opacity: 1, y: 0, duration: 1.0, ease: "power3.out" }, 17.6);
-      tl.fromTo("#d-nagebootst", { opacity: 0 }, { opacity: 1, duration: 0.6 }, 18.2);
-      tl.fromTo("#bestand", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.5, ease: "power2.out" }, 18.6);
-      tl.fromTo("#voortgang", { scaleX: 0 }, { scaleX: 1, duration: 1.2, ease: "power1.inOut" }, 18.8);
-      tl.to("#voortgang", { opacity: 0, duration: 0.3 }, 20.0);
-      tl.to("#prompt .c", { opacity: 1, duration: 0.01, stagger: 5.6 / 124 }, 20.3);
-      tl.to("#verstuur", { backgroundColor: "#003a7d", duration: 0.3 }, 26.0);
-      tl.to("#verstuur", { scale: 0.88, duration: 0.12, yoyo: true, repeat: 1 }, 26.9);
-      tl.to(["#bestand", "#prompt"], { opacity: 0, duration: 0.3 }, 27.2);
-      tl.to("#verstuur", { backgroundColor: "#cddcec", duration: 0.3 }, 27.2);
-      tl.fromTo("#bubbel", { opacity: 0, y: 260 }, { opacity: 1, y: 0, duration: 0.7, ease: "power3.out" }, 27.25);
-      tl.to("#antwoord", { opacity: 1, duration: 0.5 }, 28.0);
+      // ===== 16–28 s · DE TESTVIDEO =====
+      tl.fromTo("#tvscene", { opacity: 0 }, { opacity: 1, duration: 0.45, ease: "power1.out" }, 15.8);
+      rise("#tv-label", 16.2);
+      rise("#tv-kop", 16.35);
+      streep("#tv-streep", 16.9);
+      rise("#tv-tekst", 17.2);
+      tl.fromTo("#tv", { opacity: 0, scale: 0.96 }, { opacity: 1, scale: 1, duration: 0.6, ease: "power2.out" }, 16.6);
+      tl.fromTo("#tv-tijd", { opacity: 0 }, { opacity: 1, duration: 0.5 }, 16.6);
+      const klok = { s: 0 };
+      const tijdEl = document.getElementById("tv-tijd-tekst");
+      tl.fromTo(klok, { s: 0 }, { s: 10.878, duration: 10.878, ease: "none",
+        onUpdate: () => { const v = Math.floor(klok.s); tijdEl.textContent = "00:" + String(v).padStart(2, "0"); } }, 16.6);
+      tl.to("#tv", { opacity: 0, duration: 0.4 }, 27.0);
+
+      tl.fromTo("#demo", { opacity: 0 }, { opacity: 1, duration: 0.45, ease: "power1.out" }, 27.8);
+      rise("#d-label", 28.3);
+      rise("#d-kop", 28.45);
+      streep("#d-streep", 29);
+      rise("#d-tekst", 29.3);
+      tl.fromTo("#venster", { opacity: 0, y: 50 }, { opacity: 1, y: 0, duration: 1.0, ease: "power3.out" }, 29.6);
+      tl.fromTo("#d-nagebootst", { opacity: 0 }, { opacity: 1, duration: 0.6 }, 30.2);
+      tl.fromTo("#bestand", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.5, ease: "power2.out" }, 30.6);
+      tl.fromTo("#voortgang", { scaleX: 0 }, { scaleX: 1, duration: 1.2, ease: "power1.inOut" }, 30.8);
+      tl.to("#voortgang", { opacity: 0, duration: 0.3 }, 32);
+      tl.to("#prompt .c", { opacity: 1, duration: 0.01, stagger: 5.6 / 124 }, 32.3);
+      tl.to("#verstuur", { backgroundColor: "#003a7d", duration: 0.3 }, 38);
+      tl.to("#verstuur", { scale: 0.88, duration: 0.12, yoyo: true, repeat: 1 }, 38.9);
+      tl.to(["#bestand", "#prompt"], { opacity: 0, duration: 0.3 }, 39.2);
+      tl.to("#verstuur", { backgroundColor: "#cddcec", duration: 0.3 }, 39.2);
+      tl.fromTo("#bubbel", { opacity: 0, y: 260 }, { opacity: 1, y: 0, duration: 0.7, ease: "power3.out" }, 39.25);
+      tl.to("#antwoord", { opacity: 1, duration: 0.5 }, 40);
       tl.set(["#d1", "#d2", "#d3"], { opacity: 0.25 }, 0);
       ["#d1", "#d2", "#d3"].forEach((d, i) => {
-        for (let t = 28.2 + i * 0.18; t < 31; t += 0.9) {
+        for (let t = 40.2 + i * 0.18; t < 43; t += 0.9) {
           tl.to(d, { opacity: 1, duration: 0.3, ease: "sine.inOut" }, t);
           tl.to(d, { opacity: 0.25, duration: 0.3, ease: "sine.inOut" }, t + 0.3);
         }
       });
 
       // ===== 31–40 s · RESULTAAT =====
-      tl.set("#i-inzicht", { opacity: 0 }, 30.9);
-      tl.set("#i-resultaat", { opacity: 1 }, 30.9);
-      tl.to("#demo", { opacity: 0, duration: 0.5, ease: "power1.in" }, 31.0);
-      tl.to("#studio", { scale: 1, duration: 1.0, ease: "power3.out" }, 31.0);
-      rise("#i-resultaat > .label.muted", 31.6);
-      tl.fromTo("#i-resultaat .badge", { opacity: 0 }, { opacity: 1, duration: 0.6 }, 31.8);
-      rise("#i-resultaat .kop", 31.75);
-      ["#r1", "#r2", "#r3"].forEach((r, i) => rise(r, 32.5 + i * 0.5));
-      rise("#res-zin", 34.2);
-      tl.fromTo("#controle", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.7, ease: "power3.out" }, 35.2);
-      zweef("#breed", "#sp-breed", 32.0, 39.6, 8, 3.6);
+      tl.set("#i-inzicht", { opacity: 0 }, 42.9);
+      tl.set("#i-resultaat", { opacity: 1 }, 42.9);
+      tl.to("#demo", { opacity: 0, duration: 0.5, ease: "power1.in" }, 43);
+      tl.to("#studio", { scale: 1, duration: 1.0, ease: "power3.out" }, 43);
+      rise("#i-resultaat > .label.muted", 43.6);
+      tl.fromTo("#i-resultaat .badge", { opacity: 0 }, { opacity: 1, duration: 0.6 }, 43.8);
+      rise("#i-resultaat .kop", 43.75);
+      ["#r1", "#r2", "#r3"].forEach((r, i) => rise(r, 44.5 + i * 0.5));
+      rise("#res-zin", 46.2);
+      tl.fromTo("#controle", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.7, ease: "power3.out" }, 47.2);
+      zweef("#breed", "#sp-breed", 44.0, 51.6, 8, 3.6);
 
       // ===== 40–45 s · OUTRO =====
-      tl.fromTo("#outro", { opacity: 0 }, { opacity: 1, duration: 0.6, ease: "power1.inOut" }, 39.6);
+      tl.fromTo("#outro", { opacity: 0 }, { opacity: 1, duration: 0.6, ease: "power1.inOut" }, 51.6);
       ["#oc1", "#oc2", "#oc3", "#oc4"].forEach((c, i) => {
-        tl.fromTo(c, { scale: 0.75, x: 90 }, { scale: 1, x: 0, duration: 1.4, ease: "power2.out" }, 39.7 + i * 0.1);
+        tl.fromTo(c, { scale: 0.75, x: 90 }, { scale: 1, x: 0, duration: 1.4, ease: "power2.out" }, 51.7 + i * 0.1);
       });
-      tl.fromTo("#o-logo", { opacity: 0 }, { opacity: 1, duration: 0.7 }, 40.0);
-      rise("#o-kop", 40.1);
-      streep("#o-streep", 40.6);
-      rise("#o-slogan", 40.8);
-      rise("#o-r1", 41.3);
-      rise("#o-r2", 41.55);
-      rise("#o-reeks", 41.9);
-      tl.to("#outro .links, #o-logo", { opacity: 0, duration: 0.7, ease: "power1.in" }, 44.2);
+      tl.fromTo("#o-logo", { opacity: 0 }, { opacity: 1, duration: 0.7 }, 52);
+      rise("#o-kop", 52.1);
+      streep("#o-streep", 52.6);
+      rise("#o-slogan", 52.8);
+      rise("#o-r1", 53.3);
+      rise("#o-r2", 53.55);
+      rise("#o-reeks", 53.9);
+      tl.to("#outro .links, #o-logo", { opacity: 0, duration: 0.7, ease: "power1.in" }, 56.2);
 
       window.__timelines["main"] = tl;
       tl.seek(0);
